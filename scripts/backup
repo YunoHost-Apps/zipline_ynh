@@ -34,6 +34,14 @@ ynh_backup --src_path="$data_dir" --is_big
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
+# SPECIFIC BACKUP
+#=================================================
+# BACKUP LOGROTATE
+#=================================================
+
+ynh_backup --src_path="/etc/logrotate.d/$app"
+
+#=================================================
 # BACKUP SYSTEMD
 #=================================================
 

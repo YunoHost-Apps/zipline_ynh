@@ -14,7 +14,14 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression --message="Stopping a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=$app --action="stop" --log_path="systemd"
+ynh_systemd_action --service_name="$app" --action="stop" --log_path="/var/log/$app/$app.log"
+
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+ynh_script_progression --message="Ensuring downward compatibility..."
+
+ynh_app_setting_set_default --key=secret --value=$(ynh_string_random --length=32)
 
 #=================================================
 # "REBUILD" THE APP (DEPLOY NEW SOURCES, RERUN NPM BUILD...)
@@ -24,7 +31,7 @@ ynh_systemd_action --service_name=$app --action="stop" --log_path="systemd"
 ynh_script_progression --message="Upgrading source files..." --weight=1
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir"
+ynh_setup_source --dest_dir="$install_dir" --keep=".env" --full_replace
 
 chown -R $app:www-data "$install_dir"
 chmod 755 "$data_dir/uploads"
@@ -36,6 +43,17 @@ ynh_script_progression --message="Upgrading dependencies..." --weight=5
 
 # Install Nodejs
 ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+ynh_use_nodejs
+
+#=================================================
+# UPDATE A CONFIG FILE
+#=================================================
+ynh_script_progression --message="Updating a config file..." --weight=1
+
+ynh_add_config --template=".env" --destination="$install_dir/.env"
+
+chmod 400 "$install_dir/.env"
+chown $app:$app "$install_dir/.env"
 
 #=================================================
 # INSTALL ZIPLINE
@@ -43,10 +61,11 @@ ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
 ynh_script_progression --message="Building $app..." --weight=10
 
 pushd $install_dir
- 	ynh_use_nodejs
-	ynh_exec_warn_less corepack enable && corepack prepare yarn@latest --activate
-	ynh_exec_warn_less sudo -u $app env $ynh_node_load_PATH COREPACK_ENABLE_DOWNLOAD_PROMPT=0 yarn install
-	ynh_exec_warn_less sudo -u $app env $ynh_node_load_PATH yarn build
+	ynh_exec_warn_less npm install -g corepack@latest
+	ynh_exec_warn_less corepack enable
+	ynh_exec_warn_less corepack prepare pnpm@latest --activate
+	ynh_exec_warn_less ynh_exec_as $app env $ynh_node_load_PATH COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install
+	ynh_exec_warn_less ynh_exec_as $app env $ynh_node_load_PATH pnpm build
 popd
 
 #=================================================
@@ -54,18 +73,24 @@ popd
 #=================================================
 ynh_script_progression --message="Upgrading system configurations related to $app..." --weight=1
 
+# Create a dedicated NGINX config
 ynh_add_nginx_config
 
+# Create a dedicated systemd config
 ynh_add_systemd_config
+yunohost service add "$app" --description="ShareX/file upload server" --log="/var/log/$app/$app.log"
 
-yunohost service add $app --description="ShareX/file upload server" --log="/var/log/$app/$app.log"
+# Use logrotate to manage app-specific logfile(s)
+mkdir -p /var/log/$app
+chown $app:$app /var/log/$app
+ynh_use_logrotate --non-append
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
+ynh_script_progression --message="Starting $app's systemd service..." --weight=1
 
-ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="listening on 127.0.0.1"
+ynh_systemd_action --service_name="$app" --action="start" --log_path="/var/log/$app/$app.log" --line_match="server started"
 
 #=================================================
 # END OF SCRIPT
