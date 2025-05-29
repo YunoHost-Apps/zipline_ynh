@@ -1,99 +1,69 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping a systemd service..." --weight=1
+ynh_script_progression "Stopping $app's systemd service..."
 
-ynh_systemd_action --service_name=$app --action="stop" --log_path="systemd"
+ynh_systemctl --service=$app --action="stop" --log_path="systemd"
 
-#=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
-ynh_script_progression "Ensuring downward compatibility..."
-
-if ynh_compare_current_package_version --comparison lt --version 4.0.2~ynh1
-then
-    ynh_die --message="Zipline v4 was a complete rewrite, and as such, there is no upgrade path from v3 to v4. \
-    You will need to export your data from v3 and import it into v4.\
-    This process is made easier by the fact that v4 has a built-in importer to import data from v3.\
-    \
-    See https://zipline.diced.sh/docs/migrate for more information."
-fi
-
-#=================================================
-# "REBUILD" THE APP (DEPLOY NEW SOURCES, RERUN NPM BUILD...)
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Upgrading source files..." --weight=1
+ynh_script_progression "Upgrading source files..."
 
-# Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir"
+ynh_setup_source --dest_dir="$install_dir" --full_replace --keep = ".env"
 
-chown -R $app:www-data "$install_dir"
 chmod 755 "$data_dir/uploads"
 
 #=================================================
-# UPGRADE DEPENDENCIES
+# INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=5
+ynh_script_progression "Installing dependencies..."
 
-# Install Nodejs
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+ynh_nodejs_install
+ynh_hide_warnings corepack enable && corepack prepare pnpm@latest --activate
 
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
 ynh_script_progression --message="Updating $app's configuration files..." --weight=1
 
-ynh_add_config --template=".env" --destination="$install_dir/.env"
-
-chmod 400 "$install_dir/.env"
-chown $app:$app "$install_dir/.env"
-
-#=================================================
-# INSTALL ZIPLINE
-#=================================================
-ynh_script_progression --message="Building $app..." --weight=10
-
-pushd $install_dir
- 	ynh_use_nodejs
-	ynh_exec_warn_less env $ynh_node_load_PATH corepack enable
-	ynh_exec_warn_less env $ynh_node_load_PATH corepack prepare pnpm@latest --activate
-	ynh_exec_warn_less ynh_exec_as "$app" env $ynh_node_load_PATH COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install
-	ynh_exec_warn_less ynh_exec_as "$app" env $ynh_node_load_PATH pnpm build
-popd
+ynh_config_add --template=".env" --destination="$install_dir/.env"
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Upgrading system configurations related to $app..." --weight=1
+ynh_script_progression "Upgrading system configurations related to $app..."
 
-ynh_add_nginx_config
+ynh_config_add_nginx
 
-ynh_add_systemd_config
+ynh_config_add_systemd
 
 yunohost service add $app --description="ShareX/file upload server" --log="/var/log/$app/$app.log"
 
 #=================================================
+# INSTALL ZIPLINE
+#=================================================
+ynh_script_progression "Installing $app..."
+
+pushd $install_dir
+	ynh_hide_warnings ynh_exec_as_app COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install
+	ynh_hide_warnings ynh_exec_as_app pnpm build
+popd
+
+#=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
+ynh_script_progression "Starting $app's systemd service..."
 
-ynh_systemd_action --service_name=$app --action="start" --log_path="systemd" --line_match="server started"
+ynh_systemctl --service=$app --action="start" --log_path="systemd"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --last
+ynh_script_progression "Upgrade of $app completed"
