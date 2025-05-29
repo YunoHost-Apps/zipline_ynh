@@ -27,6 +27,26 @@ ynh_script_progression "Upgrading dependencies..."
 ynh_nodejs_install
 
 #=================================================
+# UPDATE A CONFIG FILE
+#=================================================
+ynh_script_progression --message="Updating $app's configuration files..." --weight=1
+
+ynh_add_config --template=".env" --destination="$install_dir/.env"
+
+#=================================================
+# INSTALL ZIPLINE
+#=================================================
+ynh_script_progression --message="Building $app..." --weight=10
+
+pushd $install_dir
+ 	ynh_use_nodejs
+	ynh_exec_warn_less env $ynh_node_load_PATH corepack enable
+	ynh_exec_warn_less env $ynh_node_load_PATH corepack prepare pnpm@latest --activate
+	ynh_exec_warn_less ynh_exec_as "$app" env $ynh_node_load_PATH COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install
+	ynh_exec_warn_less ynh_exec_as "$app" env $ynh_node_load_PATH pnpm build
+popd
+
+#=================================================
 # REAPPLY SYSTEM CONFIGURATIONS
 #=================================================
 ynh_script_progression "Upgrading system configurations related to $app..."
