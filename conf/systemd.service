@@ -7,8 +7,8 @@ Type=simple
 User=__APP__
 Group=__APP__
 WorkingDirectory=__INSTALL_DIR__/
-Environment=PATH=PATH=__PATH_WITH_NODEJS__
 Environment="NODE_ENV=production"
+Environment="PATH=__PATH_WITH_NODEJS__"
 ExecStart=__NODEJS_DIR__/pnpm start
 Restart=on-failure
 RestartSec=5
