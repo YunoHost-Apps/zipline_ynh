@@ -20,11 +20,12 @@ ynh_setup_source --dest_dir="$install_dir" --full_replace --keep = ".env"
 chmod 755 "$data_dir/uploads"
 
 #=================================================
-# UPGRADE DEPENDENCIES
+# INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression "Upgrading dependencies..."
+ynh_script_progression "Installing dependencies..."
 
 ynh_nodejs_install
+ynh_hide_warnings corepack enable && corepack prepare pnpm@latest --activate
 
 #=================================================
 # UPDATE A CONFIG FILE
@@ -32,19 +33,6 @@ ynh_nodejs_install
 ynh_script_progression --message="Updating $app's configuration files..." --weight=1
 
 ynh_add_config --template=".env" --destination="$install_dir/.env"
-
-#=================================================
-# INSTALL ZIPLINE
-#=================================================
-ynh_script_progression --message="Building $app..." --weight=10
-
-pushd $install_dir
- 	ynh_use_nodejs
-	ynh_exec_warn_less env $ynh_node_load_PATH corepack enable
-	ynh_exec_warn_less env $ynh_node_load_PATH corepack prepare pnpm@latest --activate
-	ynh_exec_warn_less ynh_exec_as "$app" env $ynh_node_load_PATH COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install
-	ynh_exec_warn_less ynh_exec_as "$app" env $ynh_node_load_PATH pnpm build
-popd
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATIONS
@@ -63,8 +51,8 @@ yunohost service add $app --description="ShareX/file upload server" --log="/var/
 ynh_script_progression "Installing $app..."
 
 pushd $install_dir
-	ynh_hide_warnings ynh_exec_as_app yarn install
-	ynh_hide_warnings ynh_exec_as_app yarn build
+	ynh_hide_warnings ynh_exec_as_app COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install
+	ynh_hide_warnings ynh_exec_as_app pnpm build
 popd
 
 #=================================================

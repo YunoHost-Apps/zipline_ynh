@@ -4,13 +4,6 @@ source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# RESTORE THE APP MAIN DIR
-#=================================================
-ynh_script_progression "Restoring the app main directory..."
-
-ynh_restore "$install_dir"
-
-#=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
 ynh_script_progression "Reinstalling dependencies..."
@@ -18,11 +11,12 @@ ynh_script_progression "Reinstalling dependencies..."
 ynh_nodejs_install
 ynh_hide_warnings corepack enable && corepack prepare pnpm@latest --activate
 
-# run dummy command to ensure pnpm is fetched
-pushd $install_dir
-	ynh_exec_warn_less ynh_exec_as "$app" env $ynh_node_load_PATH COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm bin
-	ynh_exec_warn_less env $ynh_node_load_PATH corepack prepare pnpm@latest --activate
-popd
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+ynh_script_progression "Restoring the app main directory..."
+
+ynh_restore "$install_dir"
 
 #=================================================
 # RESTORE THE DATA DIRECTORY
