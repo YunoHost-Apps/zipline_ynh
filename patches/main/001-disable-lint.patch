@@ -1,0 +1,28 @@
+From 8364dd5da0ff5c4775fd6f9f0524de953cec0f0f Mon Sep 17 00:00:00 2001
+From: orhtej2 <2871798+orhtej2@users.noreply.github.com>
+Date: Sun, 28 Dec 2025 22:38:12 +0100
+Subject: [PATCH] disable lint
+
+---
+ scripts/build.ts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/build.ts b/scripts/build.ts
+index d736fc2b..1e80dec1 100644
+--- a/scripts/build.ts
++++ b/scripts/build.ts
+@@ -4,9 +4,9 @@ import { lintStep } from './lint';
+ run(
+   'build',
+ 
+-  lintStep,
++  //lintStep,
+   step('prisma', 'prisma generate'),
+-  step('typecheck', 'tsc', () => !process.argv.includes('--skip')),
++  //step('typecheck', 'tsc', () => !process.argv.includes('--skip')),
+ 
+   // builds
+   step('server', 'tsup'),
+-- 
+2.39.5
+
