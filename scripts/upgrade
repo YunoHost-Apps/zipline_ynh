@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source _common.sh
+
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -24,7 +24,6 @@ chmod 755 "$data_dir/uploads"
 #=================================================
 ynh_script_progression "Installing dependencies..."
 
-ynh_nodejs_install
 ynh_hide_warnings corepack enable && corepack prepare pnpm@latest --activate
 
 #=================================================

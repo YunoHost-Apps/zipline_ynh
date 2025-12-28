@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source _common.sh
+
 source /usr/share/yunohost/helpers
 
 secret=$(ynh_string_random --length=32)
@@ -11,7 +11,6 @@ ynh_app_setting_set --app="$app" --key=secret --value=$secret
 #=================================================
 ynh_script_progression "Installing dependencies..."
 
-ynh_nodejs_install
 ynh_hide_warnings corepack enable && corepack prepare pnpm@latest --activate
 
 #=================================================
