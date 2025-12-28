@@ -24,7 +24,6 @@ chmod 755 "$data_dir/uploads"
 #=================================================
 ynh_script_progression "Installing dependencies..."
 
-#REMOVEME? ynh_nodejs_install
 ynh_hide_warnings corepack enable && corepack prepare pnpm@latest --activate
 
 #=================================================
