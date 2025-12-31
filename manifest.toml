@@ -18,7 +18,7 @@ admindoc = "https://zipline.diced.sh/docs/get-started"
 code = "https://github.com/diced/zipline"
 
 [integration]
-yunohost = ">= 12.1.17"
+yunohost = ">= 12.1.38"
 helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
