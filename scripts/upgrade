@@ -3,6 +3,10 @@
 
 source /usr/share/yunohost/helpers
 
+if ynh_app_upgrading_from_version_before 4.7.0~ynh1; then
+	ynh_die "Due to upstream constraints you need to update to 4.7.0~ynh1 first!"
+fi
+
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
