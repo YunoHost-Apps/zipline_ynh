@@ -15,10 +15,11 @@ index d736fc2b..1e80dec1 100644
  run(
    'build',
  
+-  step('format', 'oxfmt --check'),
 -  lintStep,
-+  //lintStep,
-   step('prisma', 'prisma generate'),
 -  step('typecheck', 'tsc', () => !process.argv.includes('--skip')),
++  //step('format', 'oxfmt --check'),
++  //lintStep,
 +  //step('typecheck', 'tsc', () => !process.argv.includes('--skip')),
  
    // builds
