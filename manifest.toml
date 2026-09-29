@@ -7,7 +7,7 @@ name = "Zipline"
 description.en = "ShareX/file upload server"
 description.fr = "Serveur de téléchargement ShareX/fichier"
 
-version = "4.7.0~ynh1"
+version = "4.8.0~ynh1"
 
 maintainers = []
 
@@ -44,8 +44,8 @@ ram.runtime = "50M"
     [resources.sources]
 
     [resources.sources.main]
-    url = "https://github.com/diced/zipline/archive/refs/tags/v4.7.0.tar.gz"
-    sha256 = "ff896176cf3a73bcc0409bf285336c1101d57c8f7619b4fb1f864e314674f013"
+    url = "https://github.com/diced/zipline/archive/refs/tags/v4.8.0.tar.gz"
+    sha256 = "59b60de6da7021a0b6df9a40d90e2491e49208a717251e6220d9dc3357e019e2"
     autoupdate.strategy = "latest_github_tag"
 
     [resources.system_user]
